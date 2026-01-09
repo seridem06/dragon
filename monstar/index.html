@@ -260,6 +260,12 @@ var Input = {
       }
     }
     draw(iter) {
+      // Determinar si este segmento es parte de la cola
+      var isPartOfTail = this.children.length <= 2;
+      
+      // Ajustar grosor según si es cola o cuerpo
+      var segmentWidth = isPartOfTail ? 1.5 : 3;
+      
       // Efecto de brillo en los segmentos
       var gradient = ctx.createLinearGradient(
         this.parent.x, this.parent.y,
@@ -270,53 +276,74 @@ var Input = {
       gradient.addColorStop(1, '#cc0000');
       
       ctx.strokeStyle = gradient;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = segmentWidth;
       ctx.shadowColor = '#ff0000';
       ctx.shadowBlur = 5;
       
+      // Línea principal del segmento
       ctx.beginPath();
       ctx.moveTo(this.parent.x, this.parent.y);
       ctx.lineTo(this.x, this.y);
       ctx.stroke();
       
-      // Si es el último segmento (cola), dibujar punta de flecha
-      if (this.children.length === 0) {
-        var arrowSize = 15;
+      // Dibujar costillas esqueléticas si NO es cola
+      if (!isPartOfTail && this.children.length > 2) {
         var angle = Math.atan2(this.y - this.parent.y, this.x - this.parent.x);
-        
-        ctx.fillStyle = '#cc0000';
-        ctx.strokeStyle = '#ff0000';
-        ctx.lineWidth = 2;
-        ctx.shadowBlur = 10;
-        
-        // Punta de la flecha
-        var tipX = this.x + Math.cos(angle) * arrowSize;
-        var tipY = this.y + Math.sin(angle) * arrowSize;
-        
-        // Lados de la flecha
         var perpAngle = angle + Math.PI / 2;
-        var side1X = this.x + Math.cos(perpAngle) * arrowSize * 0.5;
-        var side1Y = this.y + Math.sin(perpAngle) * arrowSize * 0.5;
-        var side2X = this.x - Math.cos(perpAngle) * arrowSize * 0.5;
-        var side2Y = this.y - Math.sin(perpAngle) * arrowSize * 0.5;
+        var midX = (this.parent.x + this.x) / 2;
+        var midY = (this.parent.y + this.y) / 2;
         
-        // Base de la flecha
-        var baseX = this.x - Math.cos(angle) * arrowSize * 0.3;
-        var baseY = this.y - Math.sin(angle) * arrowSize * 0.3;
-        var base1X = baseX + Math.cos(perpAngle) * arrowSize * 0.3;
-        var base1Y = baseY + Math.sin(perpAngle) * arrowSize * 0.3;
-        var base2X = baseX - Math.cos(perpAngle) * arrowSize * 0.3;
-        var base2Y = baseY - Math.sin(perpAngle) * arrowSize * 0.3;
+        ctx.strokeStyle = '#ff3333';
+        ctx.lineWidth = 1.5;
         
+        // Costillas laterales
+        var ribLength = 12;
+        
+        // Costilla izquierda
         ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(side1X, side1Y);
-        ctx.lineTo(base1X, base1Y);
-        ctx.lineTo(base2X, base2Y);
-        ctx.lineTo(side2X, side2Y);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(midX, midY);
+        ctx.lineTo(
+          midX + Math.cos(perpAngle) * ribLength,
+          midY + Math.sin(perpAngle) * ribLength
+        );
         ctx.stroke();
+        
+        // Costilla derecha
+        ctx.beginPath();
+        ctx.moveTo(midX, midY);
+        ctx.lineTo(
+          midX - Math.cos(perpAngle) * ribLength,
+          midY - Math.sin(perpAngle) * ribLength
+        );
+        ctx.stroke();
+      }
+      
+      // Si es la cola, agregar segmentos más delgados
+      if (isPartOfTail && this.children.length > 0) {
+        var angle = Math.atan2(this.y - this.parent.y, this.x - this.parent.x);
+        var perpAngle = angle + Math.PI / 2;
+        var midX = (this.parent.x + this.x) / 2;
+        var midY = (this.parent.y + this.y) / 2;
+        
+        ctx.strokeStyle = '#ff3333';
+        ctx.lineWidth = 1;
+        
+        // Pequeñas marcas en la cola
+        var markLength = 4;
+        ctx.beginPath();
+        ctx.moveTo(midX + Math.cos(perpAngle) * markLength, midY + Math.sin(perpAngle) * markLength);
+        ctx.lineTo(midX - Math.cos(perpAngle) * markLength, midY - Math.sin(perpAngle) * markLength);
+        ctx.stroke();
+      }
+      
+      // Si es el último segmento, simplemente dibujar un pequeño punto
+      if (this.children.length === 0) {
+        ctx.fillStyle = '#ff0000';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fill();
       }
       
       ctx.shadowBlur = 0;
@@ -812,11 +839,11 @@ var Input = {
     }, 33);
   }
   
-  var legNum = Math.floor(1 + Math.random() * 12);
+  var legNum = 3; // Tres pares de patas = 6 patas totales
   setupLizard(
     8 / Math.sqrt(legNum),
     legNum,
-    Math.floor(4 + Math.random() * legNum * 8)
+    Math.floor(20 + Math.random() * 10) // Cola larga
   );
 </script>
 </body>
